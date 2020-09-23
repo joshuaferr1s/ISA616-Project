@@ -24,6 +24,10 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # Overview
 
+What are my goals for the analysis? Show the business value proposition canvas for convenience of readers.
+
+Packages used - explain use of pacman as a package manager
+
 # Data Description
 
 # Preprocessing
