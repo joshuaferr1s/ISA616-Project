@@ -1,0 +1,78 @@
+---
+title: "Data Selection Description"
+author: "Joshua Ferris"
+date: "8/21/2020"
+output:
+  pdf_document: default
+  html_document:
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE}
+setwd('/Users/joshua/Downloads/BeachTan')
+df = read.csv('BeachTan.csv', stringsAsFactors = TRUE)
+```
+  
+## The number of observations
+
+```{r}
+nrow(df)
+```
+
+The Beach Tan data set has $11,041$ observations.
+
+## The number of variables
+
+```{r}
+ncol(df)
+```
+
+The Beach Tan data set has $12$ variables.
+
+## The data type of each variable
+
+Some of the variables were typed incorrectly and so I will convert them to factors.
+
+```{r}
+df$UIDStoreLocation = factor(df$UIDStoreLocation)
+df$MembershipType = factor(df$MembershipType)
+df$MembershipLevel = factor(df$MembershipLevel)
+str(df)
+```
+
+* Factor: UIDStoreLocation, Gender, DateJoined, MembershipType, and MembershipLevel.
+* Int: UIDClient, DaysSinceJoined, Age, UVTans, SunlessTans, and UpgradeRevenue.
+* Num: RetailRevenue.
+
+## The levels of each factor
+
+```{r}
+levels(df$UIDStoreLocation)
+levels(df$Gender)
+head(levels(df$DateJoined))
+levels(df$MembershipType)
+levels(df$MembershipLevel)
+```
+
+* UIDStoreLocation: 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10.
+* Gender: "", "#NULL!", "0", and "1".
+* DateJoined: "", "1/1/2008", 1/1/2011", "1/10/2002", "1/10/2003", "1/10/2004", and many more dates.
+* MembershipType: 0, 1, and 2.
+* MembershipLevel: 0, 1, 2, 3, and 4.
+
+## The amount of missingness in the data (DataExplorer)
+
+```{r}
+library(DataExplorer)
+profile_missing(df)
+```
+
+The above output tells us that the data set has no missing data. However, from looking at the data manually, I have observed empty characters and "#NULL!" in the Gender column. In the date column there are some empty character string also. We will want to clean these values before we perform any analysis.
+
+## High-level overview of the analysis I will conduct
+
+I theorize that the more active a client is in their tanning services, the more retail revenue they will generate. To test this theory I will perform some explanatory analysis on the data using linear regression on the response variable RetailRevenue.
