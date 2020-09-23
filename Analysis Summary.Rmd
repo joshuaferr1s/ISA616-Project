@@ -1,0 +1,31 @@
+---
+title: "Analysis Summary"
+author: "Joshua Ferris"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: 
+  html_document:
+    code_folding: show
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_float: yes
+    toc_scroll: "smooth"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      cache=TRUE,
+                      out.width="100%",
+                      warning=FALSE,
+                      message=FALSE,
+                      clean_cache=TRUE)
+```
+
+# Overview
+
+# Data Description
+
+# Preprocessing
+
+# Conclusion
