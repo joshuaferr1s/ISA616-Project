@@ -3,71 +3,33 @@ if(require(pacman)==FALSE)
 pacman::p_load(dplyr, DataExplorer, corrplot, leaps)
 
 tan = read.csv("Data/BeachTan.csv", stringsAsFactors=TRUE)
-summary(tan)
-
-### PREPROCESSING ###
-
-# Proper Encoding #
 tan$UIDStoreLocation = as.factor(tan$UIDStoreLocation)
 tan$Gender = as.factor(tan$Gender)
 tan$MembershipType = as.factor(tan$MembershipType)
 tan$MembershipLevel = as.factor(tan$MembershipLevel)
-# End Encoding #
-
-# Remove unnecessary columns #
 tan = select(tan, -UIDClient, -DateJoined)
-# End Remove unnecessary columns #
-
-# Fix gender column #
 tan$Gender = recode_factor(tan$Gender, "0"="0", "1"="1", .default="Missing")
-# End Fix gender column #
-
-# Convert UpgradeRevenue #
 tan$hasUpgraded = with(tan, ifelse(UpgradeRevenue == 0, as.character(0), as.character(1)))
 tan$hasUpgraded = as.factor(tan$hasUpgraded)
 tan = select(tan, -UpgradeRevenue)
-# End Convert UpgradeRevenue #
-
-### END PREPROCESSING ###
-
-### corelation - no highly corelated. PERFECT ###
-nums = unlist(lapply(tan, is.numeric))
-tan.num = tan[,nums]
-M = cor(tan.num, use = "complete.obs")
-corrplot(M, method='circle')
-### end corelation ###
-
-DataExplorer::plot_histogram(tan)
-# Some outliers - Age: 112, DaysSinceJoin: 41944, retailRevenue: 2539.2, sunlesstans: 278, uvtans: 469
-# All right skewed. Maybe log transform to get more normal data
-DataExplorer::plot_bar(tan) # as expected.
-
-# scaled data
-tan.scaled = mutate_if(tan, is.numeric, scale)
-# end scaled data
-
 set.seed(1337)
-sample_size = floor(nrow(tan.scaled)*0.7)
-index = sample(1:nrow(tan.scaled), size=sample_size)
-tan.scaled.train = tan.scaled[index,]
-tan.scaled.valid = tan.scaled[-index,]
+sample_size = floor(nrow(tan)*0.7)
+index = sample(1:nrow(tan), size=sample_size)
+tan.train = tan[index,]
+tan.valid = tan[-index,]
 
 ### Regression ###
-tan.reg = lm(RetailRevenue~., data=tan.scaled.train)
+tan.reg = lm(RetailRevenue~., data=tan.train)
 options(scipen=999)
 summary(tan.reg)
-
-tan.reg.unscaled = lm(RetailRevenue~., data=tan)
-options(scipen=999)
-summary(tan.reg.unscaled)
 
 plot(tan.reg$fitted.values, tan.reg$residuals)
 qqnorm(tan.reg$residuals)
 
 nullmod = formula(RetailRevenue~1)
-null = lm(nullmod, data=tan.scaled.train)
+null = lm(nullmod, data=tan.train)
 fullmod = formula(RetailRevenue~.)
-full = lm(fullmod, data=tan.scaled.train)
+full = lm(fullmod, data=tan.train)
 tan.step = step(null,scope=list(lower=null,upper=full),direction="both", trace=0, k=2)
 summary(tan.step)
 tan.step.forward = step(null,scope=list(lower=null,upper=full),direction="forward", trace=0, k=2)
@@ -76,13 +38,13 @@ tan.step.backward = step(full,scope=list(lower=null,upper=full),direction="backw
 summary(tan.step.backward)
 
 # Best subsets
-tan.best.subset = regsubsets(RetailRevenue~., tan.scaled.train, nbest=1,nvmax=22)
+tan.best.subset = regsubsets(RetailRevenue~., tan.train, nbest=1,nvmax=22)
 tan.best.summary = summary(tan.best.subset)
 tan.best.summary
 
 df = rowSums(tan.best.summary$which)-1
 SSE = tan.best.summary$rss
-n = nrow(tan.scaled.train)
+n = nrow(tan.train)
 AIC.best = n*log(SSE/n)+2*df
 AIC.best
 AIC.min.best = which.min(AIC.best)
@@ -121,12 +83,12 @@ tan.best.summary$outmat[19:22,]
 # However in the complete model Age, DaysSinceJoined, and all but one of the UIDStoreLocation's are not significant
 
 # Model without Age and DaysSinceJoined
-tan.reg.candidate = lm(RetailRevenue~.-Age-DaysSinceJoined, data=tan.scaled.train)
+tan.reg.candidate = lm(RetailRevenue~.-Age-DaysSinceJoined, data=tan.train)
 summary(tan.reg.candidate)
-# Adjusted r^2 is just as good as complete model but simpler and 2 insignificant predictors removed.
+# Adjusted r^2 is better than complete model but simpler and 2 insignificant predictors removed.
 
 # Model without UIDStoreLocation, Age, and DaysSinceJoined
-tan.reg.candidate2 = lm(RetailRevenue~.-Age-DaysSinceJoined-UIDStoreLocation, data=tan.scaled.train)
+tan.reg.candidate2 = lm(RetailRevenue~.-Age-DaysSinceJoined-UIDStoreLocation, data=tan.train)
 summary(tan.reg.candidate2)
 # Adjusted R^2 is marginally lower: 33.97% compared to 34.09% in the prior model and 34.1% in the complete model.
 # However, 10 less variables are included in the model.
@@ -135,22 +97,22 @@ summary(tan.reg.candidate2)
 
 ## Model Validity
 
-pred.val.full = as.data.frame(predict(tan.reg, newdata=tan.scaled.valid, interval="prediction"))
-r2valid.full = sum((tan.scaled.valid$RetailRevenue-pred.val.full$fit)^2)/sum((tan.scaled.valid$RetailRevenue-mean(tan.scaled.valid$RetailRevenue))^2)
+pred.val.full = as.data.frame(predict(tan.reg, newdata=tan.valid, interval="prediction"))
+r2valid.full = sum((tan.valid$RetailRevenue-pred.val.full$fit)^2)/sum((tan.valid$RetailRevenue-mean(tan.valid$RetailRevenue))^2)
 r2valid.full = 1 - r2valid.full
-ase.full = sum((tan.scaled.valid$RetailRevenue-pred.val.full$fit)^2)/nrow(tan.scaled.valid)
+ase.full = sum((tan.valid$RetailRevenue-pred.val.full$fit)^2)/nrow(tan.valid)
 results = c(r2valid.full, ase.full)
 
-pred.val.1 = as.data.frame(predict(tan.reg.candidate, newdata=tan.scaled.valid, interval="prediction"))
-r2valid.1 = sum((tan.scaled.valid$RetailRevenue-pred.val.1$fit)^2)/sum((tan.scaled.valid$RetailRevenue-mean(tan.scaled.valid$RetailRevenue))^2)
+pred.val.1 = as.data.frame(predict(tan.reg.candidate, newdata=tan.valid, interval="prediction"))
+r2valid.1 = sum((tan.valid$RetailRevenue-pred.val.1$fit)^2)/sum((tan.valid$RetailRevenue-mean(tan.valid$RetailRevenue))^2)
 r2valid.1 = 1 - r2valid.1
-ase.1 = sum((tan.scaled.valid$RetailRevenue-pred.val.1$fit)^2)/nrow(tan.scaled.valid)
+ase.1 = sum((tan.valid$RetailRevenue-pred.val.1$fit)^2)/nrow(tan.valid)
 results = rbind(results, c(r2valid.1, ase.1))
 
-pred.val.2 = as.data.frame(predict(tan.reg.candidate2, newdata=tan.scaled.valid, interval="prediction"))
-r2valid.2 = sum((tan.scaled.valid$RetailRevenue-pred.val.2$fit)^2)/sum((tan.scaled.valid$RetailRevenue-mean(tan.scaled.valid$RetailRevenue))^2)
+pred.val.2 = as.data.frame(predict(tan.reg.candidate2, newdata=tan.valid, interval="prediction"))
+r2valid.2 = sum((tan.valid$RetailRevenue-pred.val.2$fit)^2)/sum((tan.valid$RetailRevenue-mean(tan.valid$RetailRevenue))^2)
 r2valid.2 = 1 - r2valid.2
-ase.2 = sum((tan.scaled.valid$RetailRevenue-pred.val.2$fit)^2)/nrow(tan.scaled.valid)
+ase.2 = sum((tan.valid$RetailRevenue-pred.val.2$fit)^2)/nrow(tan.valid)
 results = rbind(results, c(r2valid.2, ase.2))
 
 rownames(results) = c("Full model", "Candidate 1", "Candidate 2")
@@ -162,10 +124,10 @@ colnames(results) = c("R2Validation","ASE")
 
 ## Interactions
 
-tan.reg.int = lm(RetailRevenue~.^2, data=tan.scaled.train)
+tan.reg.int = lm(RetailRevenue~.^2, data=tan.train)
 
 fullmodint = formula(RetailRevenue~(.-UIDStoreLocation)^2)
-fullint = lm(fullmodint, data=tan.scaled.train)
+fullint = lm(fullmodint, data=tan.train)
 tan.step.int = step(null,scope=list(lower=null,upper=fullint),direction="both", trace=0, k=2)
 summary(tan.step.int)
 
@@ -173,8 +135,8 @@ summary(tan.step.int)
 # training data but has several insignificant variables in the model
 
 # Gender missing is not significant. Try without.
-tan.scaled.train.2 = tan.scaled.train[!(tan.scaled.train$Gender=="Missing"),]
-tan.reg.candidate3 = lm(RetailRevenue~.-Age-DaysSinceJoined-UIDStoreLocation, data=tan.scaled.train.2)
+tan.train.2 = tan.train[!(tan.train$Gender=="Missing"),]
+tan.reg.candidate3 = lm(RetailRevenue~.-Age-DaysSinceJoined-UIDStoreLocation, data=tan.train.2)
 summary(tan.reg.candidate3)
 # Worse than the model with it. Keep?
 
@@ -190,7 +152,7 @@ summary(tan.reg.candidate3)
 # d.f. = 11 and 7716
 # Adj. R^2 = 0.3397
 # R^2 Validation = 0.3558100
-# ASE = 0.6381182
+# ASE = 5806.441
 # ~~~ End Final Choice ~~~ #
 
 # Model doesn't really allow us to say much about the retail revenue - low R^2

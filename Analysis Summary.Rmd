@@ -6,7 +6,6 @@ output:
   html_document:
     code_folding: show
     df_print: paged
-    number_sections: yes
     theme: cerulean
     toc: yes
     toc_float: yes
@@ -38,17 +37,103 @@ pacman::p_load(dplyr, DataExplorer, corrplot, leaps, skimr)
 ```
 
 # Data Description
-> Complete description of the data
+
+The dataset has the following data dictionary:
+
+* UIDClient - Client Identification Number
+* UIDStoreLocation - Store Identification Code.  Only ten of the stores are included for the analysis.
+* Gender - 0 = Female, 1 = Male
+* DateJoined - Date the client joined. If client is a non-member, this is the date and time of their first tanning session.
+* DaysSinceJoined - The number of days elapsed between DateJoined and 11/1/2014.
+* MembershipType - 0 = Non Membership, 1 = Monthly Membership, 2 = Annual Membership.
+* MembershipLevel - A membership at BT typically includes unlimited tanning service for a particular level (Fast, Faster, Fastest, and Instant). The levels are based on the level of tanning equipment. The higher the membership level is, the higher the tanning equipment available to the client, and the faster tanning results received. “Fast” is the basic level, and “Instant” is the highest level.0 = Non Membership, 1 = Fast, 2 = Faster, 3 = Fastest, 4 = Instant.
+* Age	- Age of client in years
+* UVTans - The number of Ultra Violet Tans a client has taken since he/she joined BT.
+* SunlessTans	- The number of Sunless Tans a client has taken since he/she joined BT.
+* UpgradeRevenue - Amount spent (in dollars) by members to tan in a higher level bed than what their regular membership would include.
+* RetailRevenue	- Amount spent (in dollars) on various skin care lotions and products that BT offers.
+
+Since we will be performing linear regression the data set must contain only numerics and factors. Thus, after reading in the data some columns will need to be converted to factors.
 
 ```{r}
-tan99 = read.csv("Data/BeachTan.csv")
-skim(tan99)
+tan = read.csv("Data/BeachTan.csv", stringsAsFactors=TRUE)
+tan$UIDClient = as.factor(tan$UIDClient)
+tan$UIDStoreLocation = as.factor(tan$UIDStoreLocation)
+tan$DateJoined = as.factor(tan$DateJoined)
+tan$Gender = as.factor(tan$Gender)
+tan$MembershipType = as.factor(tan$MembershipType)
+tan$MembershipLevel = as.factor(tan$MembershipLevel)
 ```
 
-What information was included in the data
+Before pressing on with any analysis it is best to check our data to ensure everything is now of the correct type and to check if we have any interesting data points. We can do so using the *skim* function from the *skimr* package.
+
+```{r}
+skim(tan)
+```
+
+From the readout above, we observe that we have no missing values, however, the gender has two extra levels that will need to be remedied in the next section. The remainder of the columns all have values that make sense and the numerics are right-skewed which is to be expected.
+
+Before moving on to preprocessing the data it is important to check the data for any correlation that may exist between variables. The output below shows that none of our variables are highly corelated so we can move on with confidence.
+
+```{r}
+nums = unlist(lapply(tan, is.numeric))
+tan.num = tan[,nums]
+M = cor(tan.num, use = "complete.obs")
+corrplot(M, type="upper", method='circle')
+```
+
 
 # Preprocessing
-> Details on data preprocessing are provided
+
+As noted in the previous section the gender column contains additional levels other than 0 = Female and 1 = Male.
+
+```{r}
+count(tan, Gender)
+```
+
+In order to retain the information in the 20 rows that contain values for Gender outside of our data dictionary we will group them into a level called "Missing". This will allow us to continue to use Gender for analysis.
+
+```{r}
+tan$Gender = recode_factor(tan$Gender, "0"="0", "1"="1", .default="Missing")
+levels(tan$Gender)
+```
+
+There are two columns that we can remove in order to build a better model, the client identification number (*UIDClient*) and the date the client joined (*DateJoined*). The client ID is good to remove as every client's ID is unique to them and contains many levels. The date the client joined should be removed as it contains many levels and we have a column for how many days have passed since the client joined which is numeric so only takes one degree of freedom.
+
+```{r}
+tan = select(tan, -UIDClient, -DateJoined)
+colnames(tan)
+```
+
+The UpgradeRevenue column can be converted to a factor representing if a member has upgraded or not, which is a better business metric.
+
+```{r}
+tan$hasUpgraded = with(tan, ifelse(UpgradeRevenue == 0, as.character(0), as.character(1)))
+tan$hasUpgraded = as.factor(tan$hasUpgraded)
+tan = select(tan, -UpgradeRevenue)
+colnames(tan)
+```
+
+Finally, the data set must be split into training and validation sets for model building and testing. We must also set a random seed so we can reproduce the analysis.
+
+```{r}
+set.seed(1337)
+sample_size = floor(nrow(tan)*0.7)
+index = sample(1:nrow(tan), size=sample_size)
+tan.train = tan[index,]
+tan.valid = tan[-index,]
+```
 
 # Conclusion
 > A meaningful discussion of conclusions is included. The conclusion addresses the Business Value Proposition Canvas, and discusses how the solution meets the requirements of the customer segment.
+
+Table comparing the 3 models considered
+  with explanation of why we chose tan.reg.candidate2
+
+tan.reg.candidate2 code
+
+interpret coefficients
+
+comment on low R^2
+
+recommend how to get a better model in the future
