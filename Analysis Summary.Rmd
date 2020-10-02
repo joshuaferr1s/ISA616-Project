@@ -32,7 +32,7 @@ The code block below documents the list of R packages that I used in this projec
 ```{r}
 if(require(pacman)==FALSE)
   install.packages("pacman")
-pacman::p_load(dplyr, DataExplorer, corrplot, leaps, skimr)
+pacman::p_load(dplyr, corrplot, skimr, arm)
 ```
 
 # Data Description
@@ -155,16 +155,16 @@ summary(tan.model.4)
 
 We can only interpret statistically significant variables in the model and so below is a list of the interpreted coefficients:
 
-- **Gender1** - Male customers produce $15.69 less retail revenue than female customers when comparing customers of the same membership type, membership level, number of UV tans, number of sunless tans, and whether they have upgraded or not.
-- **MembershipType2** - Annual members produce $40.22 more retail revenue than non-members when comparing customers of the same gender, membership level, number of UV tans, number of sunless tans, and whether they have upgraded or not.
-- **MembershipLevel2** - Customers in the *Faster* membership level produce $29.57 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
-- **MembershipLevel3** - Customers in the *Fastest* membership level produce $64.68 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
-- **MembershipLevel4** - Customers in the *Instant* membership level produce $69.63 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
-- **UVTans** - For each additional UV tan a customer has we expect an increase in retail revenue of $1.18 when comparing customers of the same gender, membership type, membership level, number of sunless tans, and whether they have upgraded or not.
+- **Gender1** - Male customers are estimated to produce $15.69 less retail revenue than female customers when comparing customers of the same membership type, membership level, number of UV tans, number of sunless tans, and whether they have upgraded or not.
+- **MembershipType2** - Annual members are estimated to produce $40.22 more retail revenue than non-members when comparing customers of the same gender, membership level, number of UV tans, number of sunless tans, and whether they have upgraded or not.
+- **MembershipLevel2** - Customers in the *Faster* membership level are estimated to produce $29.57 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
+- **MembershipLevel3** - Customers in the *Fastest* membership level are estimated to produce $64.68 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
+- **MembershipLevel4** - Customers in the *Instant* membership level are estimated to produce $69.63 more retail revenue than non-members when comparing customers of the same gender, membership type, number of UV tans, number of sunless tans, and whether they have upgraded or not.
+- **UVTans** - For each additional UV tan a customer has we estimate an increase in retail revenue of $1.18 when comparing customers of the same gender, membership type, membership level, number of sunless tans, and whether they have upgraded or not.
 - **SunlessTans** - For each additional sunless tan a customer has we expect an increase in retail revenue of $0.89 when comparing customers of the same gender, membership type, membership level, number of UV tans, and whether they have upgraded or not.
-- **hasUpgraded1** - Customers who have paid to tan in a higher level bed than what their regular membership would include produce $12.20 more retail revenue than customer who have never upgraded when comparing customers of the same gender, membership type, membership level, number of UV tans, and number of sunless tans.
+- **hasUpgraded1** - Customers who have paid to tan in a higher level bed than what their regular membership would include are estimated to produce $12.20 more retail revenue than customer who have never upgraded when comparing customers of the same gender, membership type, membership level, number of UV tans, and number of sunless tans.
 
-From the above coefficient interpretation we immediately see some variables have a much higher impact on retail revenue. The best way to increase retail revenue is encouraging customers to become *Instant* level members and to encourage customers to pay to tan in a higher level bed than what their membership includes. Another interesting finding from this analysis is that if a customer uses a UV tanning solution instead of a sunless tanning solution we would expect to see an extra $0.29 in retail revenue from that customer. Rather unsurprisingly males generate far less retail revenue than females, however, without knowing the items the stores are selling this could be due to a lack of selection for male customers. Perhaps an analysis with equal numbers for males and females would garner a different conclusion.
+From the above coefficient interpretation we immediately see some variables have a much higher impact on retail revenue. The best way to increase retail revenue is encouraging customers to become *Instant* level members and to encourage customers to pay to tan in a higher level bed than what their membership includes. Another interesting finding from this analysis is that if a customer uses a UV tanning solution instead of a sunless tanning solution we would estimate an extra $0.29 in retail revenue from that customer. Rather unsurprisingly males generate far less retail revenue than females, however, without knowing the items the stores are selling this could be due to a lack of selection for male customers. Perhaps an analysis with equal numbers for males and females would garner a different conclusion.
 
 There are several recommendations I will make for future analysis in order to create a better solution for the client:
 
