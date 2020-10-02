@@ -37,7 +37,7 @@ pacman::p_load(dplyr, corrplot, skimr)
 
 # Data Description
 
-The dataset has the following data dictionary:
+The data set has the following data dictionary:
 
 * UIDClient - Client Identification Number
 * UIDStoreLocation - Store Identification Code.  Only ten of the stores are included for the analysis.
@@ -72,7 +72,7 @@ skim(tan)
 
 From the readout above, we observe that we have no missing values, however, the gender has two extra levels that will need to be remedied in the next section. The remainder of the columns all have values that make sense and the numerics are right-skewed which is to be expected.
 
-Before moving on to preprocessing the data it is important to check the data for any correlation that may exist between variables. The output below shows that none of our variables are highly corelated so we can move on with confidence.
+Before moving on to preprocessing the data it is important to check the data for any correlation that may exist between variables. The output below shows that none of our variables are highly correlated so we can move on with confidence.
 
 ```{r}
 nums = unlist(lapply(tan, is.numeric))
