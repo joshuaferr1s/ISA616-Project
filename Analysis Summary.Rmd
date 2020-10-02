@@ -32,7 +32,7 @@ The code block below documents the list of R packages that I used in this projec
 ```{r}
 if(require(pacman)==FALSE)
   install.packages("pacman")
-pacman::p_load(dplyr, corrplot, skimr, arm)
+pacman::p_load(dplyr, corrplot, skimr)
 ```
 
 # Data Description
