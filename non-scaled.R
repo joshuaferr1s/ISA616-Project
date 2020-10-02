@@ -1,7 +1,22 @@
+### Flow Thoughts ###
+# * Properly encode factors
+# * Remove UIDClient -> Not useful
+# * Remove DateJoined -> data encapsulated in DaysSinceJoined
+# * Fix "" and "#NULL!" Gender rows... Encode as "Missing"
+# * Convert UpgradeRevenue -> hasUpgraded 0,1 -> better business intelligence
+# * training validation split
+# * Run regression (first order ~ no interaction)
+#   * Best subsets regression
+#   * Stepwise regression
+#   * Which is best solution based on validation? Which is best for using
+# * Some nice plots and exploratory analysis of the model
+# * How to predict hos much a customer will generate: retailrevenue
+
 if(require(pacman)==FALSE)
   install.packages("pacman")
 pacman::p_load(dplyr, DataExplorer, corrplot, leaps)
 
+### Preprocessing ###
 tan = read.csv("Data/BeachTan.csv", stringsAsFactors=TRUE)
 tan$UIDStoreLocation = as.factor(tan$UIDStoreLocation)
 tan$Gender = as.factor(tan$Gender)
@@ -122,59 +137,9 @@ colnames(results) = c("R2Validation","ASE")
 # That being said there is not a large margin between the models in either metric so may choose candiate 2 for its
 # simplicity if location is not important for analysis.
 
-## Interactions
-
-tan.reg.int = lm(RetailRevenue~.^2, data=tan.train)
-
-fullmodint = formula(RetailRevenue~(.-UIDStoreLocation)^2)
-fullint = lm(fullmodint, data=tan.train)
-tan.step.int = step(null,scope=list(lower=null,upper=fullint),direction="both", trace=0, k=2)
-summary(tan.step.int)
-
-# stepwise with interactions does produce a higher R^2 adjusted value (not much more though. Only a ~4% increase) on the
-# training data but has several insignificant variables in the model
-
 # Gender missing is not significant. Try without.
 tan.train.2 = tan.train[!(tan.train$Gender=="Missing"),]
 tan.reg.candidate3 = lm(RetailRevenue~.-Age-DaysSinceJoined-UIDStoreLocation, data=tan.train.2)
 summary(tan.reg.candidate3)
-# Worse than the model with it. Keep?
-
-# Discoveries
-# * Age not important
-# * DaysSinceJoined not important
-# * UIDStoreLocation not important
-# * Model better with Missing Gender level so keep it
-
-# ~~~ Final Choice ~~~ #
-# Final model choice: tan.reg.candidate2
-# Model is statistically significant at any reasonable level
-# d.f. = 11 and 7716
-# Adj. R^2 = 0.3397
-# R^2 Validation = 0.3558100
-# ASE = 5806.441
-# ~~~ End Final Choice ~~~ #
-
-# Model doesn't really allow us to say much about the retail revenue - low R^2
-# Recommend more data collection and to include the following variables in collection
-# * 
 
 ### End Regression ###
-
-# Flow Thoughts
-# * Properly encode factors
-# * Remove UIDClient -> Not useful
-# * Remove DateJoined -> data encapsulated in DaysSinceJoined
-# * Fix "" and "#NULL!" Gender rows... Encode as "Missing"
-# * Convert UpgradeRevenue -> hasUpgraded 0,1 -> better business intelligence
-# * training validation split
-# * Run regression (first order ~ no interaction)
-#   * Stepwise regression
-#   * Best subsets regression
-#   * Which is best solution based on validation? Which is best for using
-# * Run regression (interactions)
-#   * stepwise regression
-#   * compare valid and 
-# * Some nice plots and exploratory analysis of the model
-# * How to predict hos much a customer will generate: retailrevenue
-
