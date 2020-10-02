@@ -2870,7 +2870,7 @@ pacman::p_load(dplyr, corrplot, skimr)</code></pre>
 </div>
 <div id="data-description" class="section level1">
 <h1>Data Description</h1>
-<p>The dataset has the following data dictionary:</p>
+<p>The data set has the following data dictionary:</p>
 <ul>
 <li>UIDClient - Client Identification Number</li>
 <li>UIDStoreLocation - Store Identification Code. Only ten of the stores are included for the analysis.</li>
@@ -3098,7 +3098,7 @@ tan$MembershipLevel = as.factor(tan$MembershipLevel)</code></pre>
 </tbody>
 </table>
 <p>From the readout above, we observe that we have no missing values, however, the gender has two extra levels that will need to be remedied in the next section. The remainder of the columns all have values that make sense and the numerics are right-skewed which is to be expected.</p>
-<p>Before moving on to preprocessing the data it is important to check the data for any correlation that may exist between variables. The output below shows that none of our variables are highly corelated so we can move on with confidence.</p>
+<p>Before moving on to preprocessing the data it is important to check the data for any correlation that may exist between variables. The output below shows that none of our variables are highly correlated so we can move on with confidence.</p>
 <pre class="r"><code>nums = unlist(lapply(tan, is.numeric))
 tan.num = tan[,nums]
 M = cor(tan.num, use = &quot;complete.obs&quot;)
