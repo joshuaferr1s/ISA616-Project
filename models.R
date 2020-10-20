@@ -1,6 +1,6 @@
 if(require(pacman)==FALSE)
   install.packages("pacman")
-pacman::p_load(dplyr, DataExplorer, corrplot, leaps)
+pacman::p_load(dplyr, DataExplorer, corrplot, leaps, ggplot2)
 
 options(scipen=999)
 
@@ -103,3 +103,22 @@ rownames(results) = c("Model 1", "Model 2", "Model 3", "Model 4")
 colnames(results) = c("R2Validation","ASE")
 
 results
+
+## Graph of Predicted Values ##
+p=ggplot(data=tan.valid)+
+  geom_point(aes(RetailRevenue,pred.val.model.1$fit,col="blue"),size=1.5)
+p=p+xlim(0,1600)+ylim(0,1000)
+p=p+geom_point(aes(RetailRevenue,pred.val.model.2$fit,col="red"),size=1.5)
+p=p+geom_point(aes(RetailRevenue,pred.val.model.3$fit,col="green"),size=1.5)
+p=p+labs(x="Actual Retail Revenue", y="Predicted Retail Revenue")+ggtitle("Out-of-Sample Predictive Performance")
+p=p+scale_color_manual(labels=c("Model 1","Model 2", "Model 3"),values=c("blue","red", "green"))
+p=p+geom_abline(slope=1,intercept=0)
+p
+
+p=ggplot(data=tan.valid.no.missing.gender)+
+  geom_point(aes(RetailRevenue,pred.val.model.4$fit,col="purple"),size=1.5)
+p=p+xlim(0,1600)+ylim(0,1000)
+p=p+labs(x="Actual Retail Revenue", y="Predicted Retail Revenue")+ggtitle("Out-of-Sample Predictive Performance")
+p=p+scale_color_manual(labels=c("Model 4"),values=c("purple"))
+p=p+geom_abline(slope=1,intercept=0)
+p
